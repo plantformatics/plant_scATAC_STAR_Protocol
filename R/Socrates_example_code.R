@@ -76,15 +76,15 @@ saveRDS(obj, file="Zm_B73_seedling.rep1.QC_results.rds")
 
 
 # get per cell feature counts --------------------------------------------
-cell.counts <- Matrix::colSums(soc.obj$counts) # count number of features with Tn5 insertions per cell
+cell.counts <- Matrix::colSums(soc.obj$counts)  # count number of features with Tn5 insertions per cell
 cell.counts.z <- as.numeric(scale(cell.counts)) # convert features counts into Z-scores
 cell.counts.threshold <- max(c(cell.counts[cell.counts.z < -1], 1000)) # minimum feature counts (greater of 1 std or 1000)
 
 
 # clean sparse counts matrix ---------------------------------------------
 soc.obj <- cleanData(soc.obj, 
-                     min.c=cell.counts.threshold, # minimum number of accessible features per cell
-                     min.t=0.01, # minimum feature frequency across cells
+                     min.c=1000,  # minimum number of accessible features per cell
+                     min.t=0.01,  # minimum feature frequency across cells
                      max.t=0.001, # maximum feature frequency across cells
                      verbose=T)
 
@@ -96,7 +96,7 @@ soc.obj <- regModel(soc.obj,
 
 # denoise with SVD -------------------------------------------------------
 soc.obj <- reduceDims(soc.obj, 
-                      n.pcs=20, # number of components to retain
+                      n.pcs=20,    # number of components to retain
                       cor.max=0.7, # filter components correlated above this value with per cell feature counts
                       verbose=T)
 
@@ -125,5 +125,10 @@ saveRDS(soc.obj, file="Zm_B73_seedling.rep1.clustering_results.rds")
 ## explanation of soc.obj slots ##
 ##################################
 
-## soc.obj$clusters - contains metadata for each barcode and the cluster membership
+## soc.obj$counts - dcGMatrix - sparse matrix (rows = ACRs/bins, columns = nuclei)
+## soc.obj$meta - data.frame - nuclei metadata 
+## soc.obj$residuals - matrix - standardized pearson residuals (rows = ACRs/bins, columns = nuclei)
+## soc.obj$PCA - matrix - principal components derived from SVD (rows = nuclei, columns = PCs)
+## soc.obj$UMAP - data.frame - UMAP coordinates per cell (rows = nuclei, columns = UMAP dimensions)
+## soc.obj$Clusters - data.frame - metadata for each barcode, umap coordinates, and cluster membership
 ## soc.obj
